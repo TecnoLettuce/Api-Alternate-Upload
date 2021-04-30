@@ -85,10 +85,10 @@ class CommonFunctions {
         }
 
         // Convertimos el date a timestamp
-        $tiempoSessionTimestamp = strtotime($tiempoSession);
+        // $tiempoSessionTimestamp = strtotime($tiempoSession);
 
 
-        if ($tiempoSessionTimestamp > $tiempoActual) {
+        if ($tiempoSession > $tiempoActual) {
             // Aqui el tiempo del expire es un tiempo más grande que el tiempo actual,
             // por lo tanto token valido
             return true;
@@ -99,7 +99,7 @@ class CommonFunctions {
 
     }
 
-    /** NO FUNCIONA!!!
+    /** 
      * Funcion que se llama cada vez que el usuario realiza una acción
      * Otorga 2 minutos más de login desde el momento en el que se realiza la acción
      * @param String Token
@@ -107,13 +107,10 @@ class CommonFunctions {
      */
     public function actualizarExpireDate($tokenUsuario) {
         $tiempoActual = time();
-        echo "primer tiempo ".$tiempoActual;
-        $tiempoActual = $tiempoActual +240;
-        echo "Segundo tiempo ".$tiempoActual;
-        $expireDate = $tiempoActual;     
+        $tiempoActual = $tiempoActual +240;  
         // Recogemos el expireDate asociado al token que recibimos 
-        $query = "UPDATE session SET expireDate = UNIX_TIMESTAMP(".$expireDate.") WHERE token LIKE '".$tokenUsuario."';";
-        echo "CF -> ".$query;
+        $query = "UPDATE session SET expireDate = ".$tiempoActual." WHERE token LIKE '".$tokenUsuario."';";
+        // echo "CF -> ".$query;
         $database = new Database();
         $database->getConn()->query($query);
     }
