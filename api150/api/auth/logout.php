@@ -48,7 +48,7 @@
                 $time = time();
                 // echo "La expireDate generada es ".$time;
                 $queryExpireSession = "UPDATE session SET expireDate = ".$time." WHERE idSession LIKE ".$idSesionObtenido.";";
-                echo "\nquery de actualización de la sesion > ".$queryExpireSession;
+                // echo "\nquery de actualización de la sesion > ".$queryExpireSession;
                 $stmt = $database->getConn()->prepare($queryExpireSession);
                 // ejecutamos la inserción
                 $stmt->execute();

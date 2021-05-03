@@ -66,7 +66,7 @@
     } else {
         // si faltan datos, se comunica 
         http_response_code(400);
-        echo json_encode(array("token"=>null));
+        echo json_encode(array("status"=>"400"));
     }
 
     /**
