@@ -47,19 +47,21 @@
                 // Recoger tiempo actual
                 $time = time();
                 // echo "La expireDate generada es ".$time;
-                $queryExpireSession = "UPDATE session SET expireDate = UNIX_TIMESTAMP(".$time.") WHERE idSession LIKE ".$idSesionObtenido.";";
-                // echo "\nquery de actualización de la sesion > ".$queryExpireSession;
-                // TODO comprobar que funciona
-                echo json_encode(array("error : 0")); // TodoOk
+                $queryExpireSession = "UPDATE session SET expireDate = ".$time." WHERE idSession LIKE ".$idSesionObtenido.";";
+                echo "\nquery de actualización de la sesion > ".$queryExpireSession;
+                $stmt = $database->getConn()->prepare($queryExpireSession);
+                // ejecutamos la inserción
+                $stmt->execute();
+                echo json_encode(array("status"=>"200")); // TodoOk
             } else {
                 // La sesion está vacía
-                echo json_encode(array("error : 1"));
+                echo json_encode(array("status"=>"404"));
             }
 
 
         } else {
             // no existe sesion asociada al token 
-            echo json_encode(array("error : 2"));
+            echo json_encode(array("status" => "404"));
         }
     }
 

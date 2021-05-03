@@ -13,10 +13,10 @@ class Database {
     //region Atributos
     private $host  = "localhost";
     private $dbName = "app150dev"; // dbName desarrollo
-    //private $dbName = "app150_1.0"; // dbName Produccion 
+    //private $dbName = "app150"; // dbName Produccion 
     private $username = "app150";
     private $password = "1234"; // Contraseña desarrollo
-    //private $password = "TheBackenders123"; // Contraseña producción
+    // private $password = "TheBackenders123"; // Contraseña producción
     private $conn;
     //endregion
 

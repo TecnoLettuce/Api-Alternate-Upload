@@ -54,11 +54,11 @@
             
             crearSesion($tokenGenerado, $idObtenido, $expireDateGenerated, $database);
             // echo "\nLOG > Class LOGIN > Si estas viendo esto, la session se creó correctamente";
-            echo json_encode(array("token : ".$tokenGenerado)); 
+            echo json_encode(array("token"=>$tokenGenerado)); 
             return true;
         } else {
             // Usuario no existe
-            echo json_encode(array("token : "));
+            echo json_encode(array("token" => null));
             return false;
         }
 
@@ -66,7 +66,7 @@
     } else {
         // si faltan datos, se comunica 
         http_response_code(400);
-        echo json_encode(array("token : "));
+        echo json_encode(array("token"=>null));
     }
 
     /**
@@ -86,7 +86,7 @@
         
         // Lanzamos la consulta para crear la sesion
         $query = "INSERT INTO session (idSession, idUser, token, expireDate) VALUES (null,".$idObtenido.",'".$tokenGenerado."',".$expireDate.");";
-        echo "LOG > Class LOGIN > esta es la consulta que estoy enviando al SQL para loguear --> ".$query;
+        //echo "LOG > Class LOGIN > esta es la consulta que estoy enviando al SQL para loguear --> ".$query;
         // declarar la query
         $stmt = $database->getConn()->prepare($query);
         // ejecutamos la inserción
