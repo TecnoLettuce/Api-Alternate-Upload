@@ -173,7 +173,7 @@ successUpdateAct($viejoTitulo, $nuevoTitulo, $nuevaFecha, $boolEnUso, $token);
 
 
 
-echo "\n\nLIST ONE ACT ENDPOINT --> NO FUNCIONA PORQUE VAN POR GET \n";
+echo "\n\nLIST ONE ACT ENDPOINT \n";
 echo "-----------------------------------------------------------------------\n";
 echo "\nNot found List One Act -> \n";
 notFoundListOneAct();
@@ -886,19 +886,16 @@ function successListOneAct($viejoTitulo) {
     }
 
     // Definimos los campos para el request
-    $data = json_encode(array("idPrograma" => $idObtenido));
+    $data = array("idPrograma" => $idObtenido, "titulo"=>$viejoTitulo);
     // Definimos la URL
     $url = 'http://localhost/api150/api/acts/listOne.php';
+    // Montamos la URL con el CGI
+    $url = $url .'?'. http_build_query($data);
     // instanciamos el curl
     $ch = curl_init($url);
-    // Pasar el json al payload
-    $payload = $data;
-    // Configuramos el curl y le pasamos el payload
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-    // El content type tiene que ser application/json
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-    // Pedimos el reultado
+    // Configuramos el método por el que envía
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+    // Configuramos la recepción de la respuesta
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     // Ejecutamos el envío
     $result = curl_exec($ch);
@@ -911,19 +908,16 @@ function successListOneAct($viejoTitulo) {
 function notFoundListOneAct() {
 
     // Definimos los campos para el request
-    $data = json_encode(array("idPrograma" => 999999999));
+    $data = array("idPrograma" => 99999999, "titulo"=>"NotFound");
     // Definimos la URL
     $url = 'http://localhost/api150/api/acts/listOne.php';
+    // Montamos la URL con el CGI
+    $url = $url .'?'. http_build_query($data);
     // instanciamos el curl
     $ch = curl_init($url);
-    // Pasar el json al payload
-    $payload = $data;
-    // Configuramos el curl y le pasamos el payload
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-    // El content type tiene que ser application/json
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-    // Pedimos el reultado
+    // Configuramos el método por el que envía
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+    // Configuramos la recepción de la respuesta
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     // Ejecutamos el envío
     $result = curl_exec($ch);
@@ -943,26 +937,22 @@ function noDataListOneAct($viejoTitulo) {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $idObtenido = $row["id_Programa"];
     }
-    // Definimos los campos para el request
-    $data = json_encode(array("idPrograma" => $idObtenido));
+    $data = array();
     // Definimos la URL
     $url = 'http://localhost/api150/api/acts/listOne.php';
+    // Montamos la URL con el CGI
+    $url = $url .'?'. http_build_query($data);
     // instanciamos el curl
     $ch = curl_init($url);
-    // Pasar el json al payload
-    $payload = $data;
-    // Configuramos el curl y le pasamos el payload
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-    // El content type tiene que ser application/json
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-    // Pedimos el reultado
+    // Configuramos el método por el que envía
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+    // Configuramos la recepción de la respuesta
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     // Ejecutamos el envío
     $result = curl_exec($ch);
     // Cerramos el curl
     curl_close($ch);
-   
+
     echo $result; 
 }
 //endregion
