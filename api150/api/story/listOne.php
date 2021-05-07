@@ -12,37 +12,37 @@
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
     include_once '../../util/historia.php';
+    include_once '../../util/logger.php';
 
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
 
-    // Recibe el titulo o el ID de un historia y lo busca en la base de datos 
-    $id = htmlspecialchars($_GET["idHistoria"]);
-    $titulo = htmlspecialchars($_GET["titulo"]);
+    if (isset($_GET["idHistoria"]) && isset($_GET["titulo"]) ) {
 
-    // echo "Valores recogidos > id -> ".$id." | titulo -> ".$titulo; 
-
-    if (!empty($id) && !empty($titulo)) {
-        // echo "Estoy en la rama de las 2 recogidas";
-        // Están ambos valores
+        // Recibe el titulo o el ID de un historia y lo busca en la base de datos 
+        $id = htmlspecialchars($_GET["idHistoria"]);
+        $titulo = htmlspecialchars($_GET["titulo"]);
         echo buscarPorAmbos($id, $titulo);
-    } elseif (!empty($id) && empty($titulo)) {
-        // echo "Estoy en la rama de solo la id";
 
-        // Está solo el id
+    } else if (isset($_GET["idHistoria"])) {
+
+        $id = htmlspecialchars($_GET["idHistoria"]);
         echo buscarPorId($id);
-    } elseif (empty($id) && !empty($titulo)) {
-        // echo "Estoy en la rama de solo titulo";
+        
+    } else if (isset($_GET["titulo"])) {
 
-        // Está solo el titulo
+        $titulo = htmlspecialchars($_GET["titulo"]);
         echo buscarPorTitulo($titulo);
+        
     } else {
-        // No hay ninguno
-        echo json_encode(" status : 400, message : Faltan uno o más datos");
-    }
 
+        $log = new Logger();
+        $log->incomplete_data();
+        
+    }
+ 
    
     /**
      * Recibe la id de un acto y busca por ella en la base de datos 
@@ -50,22 +50,24 @@
      * @return Result Object
      */
     function buscarPorId($id) {
-        $query = "SELECT * FROM historias WHERE id_Historia LIKE ".$id.";";
+        $query = "SELECT historias.id_Historia, historias.titulo, historias.subtitulo, historias.descripcion AS 'Desc_Historia', historias.enUso, medios.url, tipos.descripcion FROM historias INNER JOIN rel_historia ON historias.id_Historia=rel_historia.id_Historia INNER JOIN medios ON rel_historia.id_Medio=medios.id_Medio INNER JOIN tipos ON medios.id_Tipo = tipos.id_Tipo WHERE historias.id_Historia LIKE ".$id.";";
+
         $database = new Database();
         $resultado = $database->getConn()->query($query);
         
-        $arr = array();
+        $arrayMedios = array();
         
         while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
             $historia = new Historia();
             $historia->idHistoria=$row["id_Historia"];
             $historia->titulo=$row["titulo"];
             $historia->subtitulo=$row["subtitulo"];
-            $historia->descripcion=$row["descripcion"];
+            $historia->descripcion=$row["Desc_Historia"];
             $historia->enUso=$row["enUso"];
-            array_push($arr, $historia);
+            array_push($arrayMedios, array("url"=> $row["url"], "tipo"=> $row["descripcion"]) );
         }
-        $paraDevolver = json_encode($arr);
+        $historia->medios = $arrayMedios;
+        $paraDevolver = json_encode($historia);
         return $paraDevolver;
     }
     /**
@@ -74,22 +76,25 @@
      * @return Result Object
      */
     function buscarPorTitulo($titulo) {
-        $query = "SELECT * FROM historias WHERE titulo LIKE '".$titulo."';";
+        $query = "SELECT historias.id_Historia, historias.titulo, historias.subtitulo, historias.descripcion AS 'Desc_Historia', historias.enUso, medios.url, tipos.descripcion FROM historias INNER JOIN rel_historia ON historias.id_Historia=rel_historia.id_Historia INNER JOIN medios ON rel_historia.id_Medio=medios.id_Medio INNER JOIN tipos ON medios.id_Tipo = tipos.id_Tipo WHERE historias.titulo LIKE '".$titulo."';";
+
+
         $database = new Database();
         $resultado = $database->getConn()->query($query);
         
-        $arr = array();
+        $arrayMedios = array();
         
         while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
             $historia = new Historia();
             $historia->idHistoria=$row["id_Historia"];
             $historia->titulo=$row["titulo"];
             $historia->subtitulo=$row["subtitulo"];
-            $historia->descripcion=$row["descripcion"];
+            $historia->descripcion=$row["Desc_Historia"];
             $historia->enUso=$row["enUso"];
-            array_push($arr, $historia);
+            array_push($arrayMedios, array("url"=> $row["url"], "tipo"=> $row["descripcion"]) );
         }
-        $paraDevolver = json_encode($arr);
+        $historia->medios = $arrayMedios;
+        $paraDevolver = json_encode($historia);
         return $paraDevolver;
 
     }
@@ -100,22 +105,24 @@
      * @return Result Object
      */
     function buscarPorAmbos($id, $titulo) {
-        $query = "SELECT * FROM historias WHERE id_Historia LIKE ".$id." AND titulo LIKE '".$titulo."';";
+        $query = "SELECT historias.id_Historia, historias.titulo, historias.subtitulo, historias.descripcion AS 'Desc_Historia', historias.enUso, medios.url, tipos.descripcion FROM historias INNER JOIN rel_historia ON historias.id_Historia=rel_historia.id_Historia INNER JOIN medios ON rel_historia.id_Medio=medios.id_Medio INNER JOIN tipos ON medios.id_Tipo = tipos.id_Tipo WHERE historias.titulo LIKE '".$titulo."' AND historias.id_Historia LIKE ".$id.";";
+
         $database = new Database();
         $resultado = $database->getConn()->query($query);
         
-        $arr = array();
+        $arrayMedios = array();
         
         while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
             $historia = new Historia();
             $historia->idHistoria=$row["id_Historia"];
             $historia->titulo=$row["titulo"];
             $historia->subtitulo=$row["subtitulo"];
-            $historia->descripcion=$row["descripcion"];
+            $historia->descripcion=$row["Desc_Historia"];
             $historia->enUso=$row["enUso"];
-            array_push($arr, $historia);
+            array_push($arrayMedios, array("url"=> $row["url"], "tipo"=> $row["descripcion"]) );
         }
-        $paraDevolver = json_encode($arr);
+        $historia->medios = $arrayMedios;
+        $paraDevolver = json_encode($historia);
         return $paraDevolver;
 
     }

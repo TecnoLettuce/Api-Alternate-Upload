@@ -2,6 +2,7 @@
     include_once '../../config/database.php';
     include_once '../../objects/user.php';
     include_once '../../objects/session.php';
+    include_once 'uploadFilesByURL.php';
 class CommonFunctions {
 
     // Atributos

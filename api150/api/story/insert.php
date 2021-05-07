@@ -1,20 +1,27 @@
 <?php 
     //region imports
-    header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=UTF-8");
-    header("Access-Control-Allow-Methods: POST");
+    // Creo que estas 3 líneas resuelven el problema de las CORS
+    header('Access-Control-Allow-Origin: *');
+    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Access-Control-Allow-Headers, Authorization, Content-Type, Accept");
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+    // header("Access-Control-Allow-Methods: POST");
     header("Access-Control-Max-Age: 3600");
-    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+    // header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     //endregion
 
     // Conexión con la base de datos 
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
+    include_once '../../util/uploadFilesByURL.php';
+    include_once '../../util/logger.php';
 
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $ucf = new UploadCommonFunctions();
+    $logger = new Logger();
 
     //region Definicion de los datos que llegan
     $data = json_decode(file_get_contents("php://input"));
@@ -24,10 +31,20 @@
     $descripcionRecibida = $data->descripcion;
     $boolEnUso = $data->enUso;
     $token = $data->token;
+    // Datos de los medios
 
-    // Array de medios que vienen del insert de medios
+    $arrayMedios = array();
+    $arrayMedios = $data->medios;
+
     $mediosAInsertar = array();
-    $mediosAInsertar = $data->medios; // Puede estar vacío
+    $tiposAInsertar = array();
+
+
+
+    for ($i=0; $i < count($arrayMedios, COUNT_NORMAL); $i++) { 
+        array_push($mediosAInsertar, $arrayMedios[$i]->url);
+        array_push($tiposAInsertar, $arrayMedios[$i]->tipo);
+    }
 
 
     //endregion
@@ -44,69 +61,82 @@
                 //Comprobamos que el registro no existe ya en la base de datos 
                 if ($cf->comprobarExisteHistoriaPorTitulo($tituloHistoriaRecibido)) {
                     // la Historia ya existe
-                    echo json_encode(array("status : 406, message : La historia ya existe" ));
+                    $logger->already_exists("historia");
                 } else {
                     // la historia no existe 
-                    $query = "INSERT INTO historias (id_Historia, titulo, subtitulo, descripcion, enUso) VALUES (null,'".$tituloHistoriaRecibido."','".$subtituloHistoriaRecibido."', '".$descripcionRecibida."', ".$boolEnUso.");";
-                    // echo "La consulta para insertar una historia es ".$query;
-                    $stmt = $database->getConn()->prepare($query);
-                    // echo "La consulta para insertar la historia es ".$query;
-                    $stmt->execute();
 
-                    $idInsertada = -1;
-                    
-                    // Consultar el elemento que se acaba de insertar
-                    $query = "SELECT id_Historia FROM historias WHERE titulo LIKE '".$tituloHistoriaRecibido."';";
-                    $resultado = $database->getConn()->query($query);
-                    $idObtenida = -1;
-                    while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
-                        $idObtenida = $row["id_Historia"];
-                    }
-
-                    // Comprobamos que la id obtenida es válida
-                    if ($idObtenida < 0) {
-                        // No es valida
-                        echo json_encode("status : Fatal error, algo ha ido mal extrayendo la id");
-                    } else {
-                        // Tenemos la id
-                        // Comprobamos que hay medios para insertar 
-                        if (count($mediosAInsertar, COUNT_NORMAL) > 0) {
-                            // Tenemos medios para insertar
-                            for ($i=0; $i < count($mediosAInsertar, COUNT_NORMAL); $i++) { 
-                                $idMedio = $mediosAInsertar[$i];
-                                $query = "INSERT INTO rel_historia( id_Medio, id_Historia) VALUES (".$idMedio.", ".$idObtenida.");";
-                                // echo "La consulta para insertar una historia es ".$query;
-                                $stmt = $database->getConn()->prepare($query);
-                                // echo "La consulta para insertar la historia es ".$query;
-                                $stmt->execute();
-                            }
-                            echo json_encode(array("status : 200, message : Elemento creado"));
-                            
-                        } else {
-                            // Devolvemos elemento creado, sin medios para insertar
-                            echo json_encode(array("status : 200, message : Elemento creado"));
-                        }
+                    // Hay medios para insertar? 
+                    if (!empty($mediosAInsertar) && !empty($tiposAInsertar) && ( count($tiposAInsertar, COUNT_NORMAL) == count($mediosAInsertar, COUNT_NORMAL))) {
+                        // Hay medios para insertar 
+                        // Insertamos los medios
+                        $resultadoMedios = $ucf->insertarMedios($mediosAInsertar, $tiposAInsertar, $token);
                         
-                    }
 
+                        // Comprobamos el resultado
+                        if (is_array($resultadoMedios)) {
+                            // Tenemos array de ids
+
+                            // Insertamos la historia
+                            $query = "INSERT INTO historias (id_Historia, titulo, subtitulo, descripcion, enUso) VALUES (null,'".$tituloHistoriaRecibido."','".$subtituloHistoriaRecibido."', '".$descripcionRecibida."', ".$boolEnUso.");";
+                            // echo "La consulta para insertar una historia es ".$query;
+                            $stmt = $database->getConn()->prepare($query);
+                            // echo "La consulta para insertar la historia es ".$query;
+                            $stmt->execute();
+        
+                            
+                            // Consultar el elemento que se acaba de insertar
+                            $query = "SELECT id_Historia FROM historias WHERE titulo LIKE '".$tituloHistoriaRecibido."';";
+                            $resultado = $database->getConn()->query($query);
+                            $idObtenida = -1;
+                            while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
+                                $idObtenida = $row["id_Historia"];
+                            }
+
+                            // Comprobamos que la id obtenida es válida
+                            if ($idObtenida < 0) {
+                                // No es valida
+                                $logger->fatal_error("Algo ha ido mal extrayendo la id");
+                            } else {
+                                // Tenemos la id y los medios insertados
+
+                                // Insertamos las relaciones
+                                $relacionesInsertadas = array();
+                                for ($i=0; $i < count($resultadoMedios, COUNT_NORMAL); $i++) { 
+                                    $query = "INSERT INTO rel_historia( id_Medio, id_Historia) VALUES (".$resultadoMedios[$i].",".$idObtenida.");";
+                                    // echo "La consulta para insertar las relaciones es es ".$query;
+                                    $stmt = $database->getConn()->prepare($query);
+                                    $stmt->execute();
+                                    array_push($relacionesInsertadas, $logger->created_element());
+                                } // Salida del for
+                                echo json_encode($relacionesInsertadas);
+                            }
+
+                        } else {
+                            // Ha dado fallo
+                            echo $resultado;
+                        }
+                    } else {
+                        // No hay medios para insertar
+                        // Insertamos solo la historia
+                        // Insertamos la historia
+                        $query = "INSERT INTO historias (id_Historia, titulo, subtitulo, descripcion, enUso) VALUES (null,'".$tituloHistoriaRecibido."','".$subtituloHistoriaRecibido."', '".$descripcionRecibida."', ".$boolEnUso.");";
+                        // echo "La consulta para insertar una historia es ".$query;
+                        $stmt = $database->getConn()->prepare($query);
+                        // echo "La consulta para insertar la historia es ".$query;
+                        $stmt->execute();
+
+                        $logger->created_element();
+                    }                        
                 }
             } else {
-                echo json_encode("status : 400, message : Faltan uno o más datos");
+                $logger->incomplete_data();
             }
-
         } else {
-            echo json_encode("status : 401, message : Tiempo de sesión excedido");
+            $logger->expired_session();
         }
-
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
-        echo json_encode("status : 401, message : no tiene permisos para realizar esta operación");
+        $logger->not_permission();
     } else {
-        echo json_encode("status : 403, message : token no valido");
+        $logger->invalid_token();
     }
-
-    
-
-    
-
-
 ?>
