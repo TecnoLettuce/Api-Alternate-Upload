@@ -11,10 +11,14 @@
      // Conexión con la base de datos 
      include_once '../../config/database.php';
      include_once '../../util/commonFunctions.php';
+     include_once '../../objects/DAO.php';
+     include_once '../../util/logger.php';
      //Creación de la base de datos 
      $database = new Database();
      // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $logger = new Logger();
+    $dao = new Dao();
      //region Definicion de los datos que llegan
      $data = json_decode(file_get_contents("php://input"));
  
@@ -37,25 +41,22 @@
                 // Tenemos todos los datos ok
                 // Comprobamos que el id existe
                 if ($cf->comprobarExisteSaludoPorId($idSaludo)) {
-        
-                    $database = new Database();
-                    $query = "UPDATE saludos SET titulo = '".$nuevoTitulo."', descripcion = '".$nuevaDescripcion."', texto = '".$nuevoTexto."', enUso = ".$boolEnuso." WHERE id_Saludo LIKE ".$idSaludo.";";
-                    $stmt = $database->getConn()->prepare($query);
-                    $stmt->execute();
-                    echo json_encode(" status : 200, message : Elemento actualizado");
+                    $dao->actualizarSaludo($nuevoTitulo, $nuevaDescripcion, $nuevoTexto, $boolEnuso, $idSaludo);
+
+                    echo $logger->updated_element();
                 } else {
-                    echo json_encode(" status : 406, message : El registro no existe");
+                    echo $logger->not_exists("saludo");
                 }
              } else {
-                 echo json_encode(" status : 400, message : Faltan uno o más datos");
+                 echo $logger->incomplete_data();
              }
         } else {
-            echo json_encode("status : 401, message : Tiempo de sesión excedido");
+            echo $logger->expired_session();
         }
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
-        echo json_encode("status : 401, message : no tiene permisos para realizar esta operación");
+        echo $logger->not_permission();
     } else {
-        echo json_encode("status : 403, message : token no valido");
+        echo $logger->invalid_token();
     }
 
      // lo primero es comprobar que existe el elemento que se quiere modificar 

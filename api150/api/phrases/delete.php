@@ -11,11 +11,15 @@
     // Conexión con la base de datos 
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
 
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $logger = new Logger();
+    $dao = new Dao();
 
     //region Definicion de los datos que llegan
     $data = json_decode(file_get_contents("php://input"));
@@ -33,26 +37,25 @@
                 // Comprobamos que la id corresponde a un registro 
                 if ($cf->comprobarExisteFrasePorId($id)) {
                     // Efectivamente existe y se puede eliminar
-                    $query = "DELETE FROM frase_inicio WHERE id_Frase like ".$id.";";
-                    $stmt = $database->getConn()->prepare($query);
-                    $stmt->execute();
-                    echo json_encode(array(" status : 200, message : Elemento eliminado"));
+                    
+                    $dao->borrarFrase($id);
+                    echo $logger->deleted_element();
                 } else {
                     //No existe y por lo tanto no se puede eliminar 
-                    echo json_encode(array("status : 406, message : El registro no existe"));
+                    echo $logger->not_exists("frase");
                 }
             } else {
-                echo json_encode(" status : 400, message : faltan uno o más datos");
+                echo $logger->incomplete_data();
             }
 
         } else {
-            echo json_encode("status : 401, message : Tiempo de sesión excedido");
+            echo $logger->expired_session();
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
-        echo json_encode("status : 401, message : no tiene permisos para realizar esta operación");
+        echo $logger->not_permission();
     } else {
-        echo json_encode("status : 403, message : token no valido");
+        echo $logger->invalid_token();
     }
     
     

@@ -3,10 +3,20 @@
     //region imports
     header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=UTF-8");
-    header("Access-Control-Allow-Methods: POST");
+    header('Access-Control-Allow-Origin: *');
+    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Access-Control-Allow-Headers, Authorization, Content-Type, Accept");
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, HEAD');
     header("Access-Control-Max-Age: 3600");
-    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     //endregion
+
+    /* cosa de la que no me fio */
+    if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+        // Indica los métodos permitidos.
+        header('Access-Control-Allow-Methods: GET, POST, DELETE');
+        // Indica los encabezados permitidos.
+        header('Access-Control-Allow-Headers: Authorization');
+        http_response_code(204);
+    }
 
     // Conexión con la base de datos 
     include_once '../../config/database.php';

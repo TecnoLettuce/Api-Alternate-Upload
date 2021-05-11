@@ -12,25 +12,15 @@
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
     include_once '../../util/hymn.php';
-
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
+    
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $logger = new Logger();
+    $dao = new Dao();
 
-    // No tiene que recibir parámetros es solo la consulta pelada
-    $query = "SELECT * FROM himnos;";
-    $resultado = $database->getConn()->query($query);
-    
-    $arr = array();
-    
-    while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
-        $himno = new Himno();
-        $himno->id=$row["id_Himno"];
-        $himno->titulo=$row["titulo"];
-        $himno->letra=$row["letra"];
-        $himno->enUso=$row["enUso"];
-        array_push($arr, $himno);
-    }
-    echo json_encode($arr);
+    echo json_encode($dao->listarHimnos());
 ?>

@@ -1,14 +1,20 @@
 <?php 
     //region imports
+    header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=UTF-8");
-    // Creo que estas 3 líneas resuelven el problema de las CORS
     header('Access-Control-Allow-Origin: *');
     header("Access-Control-Allow-Headers: Origin, X-Requested-With, Access-Control-Allow-Headers, Authorization, Content-Type, Accept");
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-    // header("Access-Control-Allow-Methods: POST");
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, HEAD');
     header("Access-Control-Max-Age: 3600");
-    // header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     //endregion
+    /* cosa de la que no me fio */
+    if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+        // Indica los métodos permitidos.
+        header('Access-Control-Allow-Methods: GET, POST, DELETE');
+        // Indica los encabezados permitidos.
+        header('Access-Control-Allow-Headers: Authorization');
+        http_response_code(204);
+    }
 
     // Conexión con la base de datos 
     include_once '../../config/database.php';
@@ -48,7 +54,6 @@
 
 
     //endregion
-
 
     // Comprobamos que tiene permisos de administrador
     if ($cf->comprobarTokenAdmin($token) == 1) { 
@@ -108,12 +113,12 @@
                                     $stmt->execute();
                                     array_push($relacionesInsertadas, $logger->created_element());
                                 } // Salida del for
-                                echo json_encode($relacionesInsertadas);
+                                $logger->created_element();
                             }
 
                         } else {
                             // Ha dado fallo
-                            echo $resultado;
+                            echo json_encode(array("status" => 418, "message" => "El servidor se rehúsa a intentar hacer café con una tetera"));
                         }
                     } else {
                         // No hay medios para insertar

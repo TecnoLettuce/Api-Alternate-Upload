@@ -12,111 +12,38 @@
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
     include_once '../../util/hymn.php';
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
 
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $logger = new Logger();
+    $dao = new Dao();
 
-    // Recibe el titulo o el ID de un ambiente y lo busca en la base de datos 
-    $id = htmlspecialchars($_GET["idHimno"]);
-    $titulo = htmlspecialchars($_GET["titulo"]);
 
-    // echo "Valores recogidos > id -> ".$id." | titulo -> ".$titulo; 
+    if (isset($_GET["idHimno"]) && isset($_GET["titulo"]) ) {
 
-    if (!empty($id) && !empty($titulo)) {
-        // echo "Estoy en la rama de las 2 recogidas";
-        // Están ambos valores
-        echo buscarPorAmbos($id, $titulo);
-    } elseif (!empty($id) && empty($titulo)) {
-        // echo "Estoy en la rama de solo la id";
+        // Recibe el titulo o el ID de un historia y lo busca en la base de datos 
+        $id = htmlspecialchars($_GET["idHimno"]);
+        $titulo = htmlspecialchars($_GET["titulo"]);
+        echo $dao->listarUnHimnoPorIdyTitulo($id, $titulo);
 
-        // Está solo el id
-        echo buscarPorId($id);
-    } elseif (empty($id) && !empty($titulo)) {
-        // echo "Estoy en la rama de solo titulo";
+    } else if (isset($_GET["idHimno"])) {
 
-        // Está solo el titulo
-        echo buscarPorTitulo($titulo);
+        $id = htmlspecialchars($_GET["idHimno"]);
+        echo $dao->listarUnHimnoPorId($id);
+        
+    } else if (isset($_GET["titulo"])) {
+
+        $titulo = htmlspecialchars($_GET["titulo"]);
+        echo $dao->listarUnHimnoPorTitulo($titulo);
+        
     } else {
-        // No hay ninguno
-        echo json_encode(" error : 400, message : Faltan uno o más datos");
-    }
 
-   
-    /**
-     * Recibe la id de un himno y busca por ella en la base de datos 
-     * @param integer $id
-     * @return Result Object
-     */
-    function buscarPorId($id) {
-        $query = "SELECT * FROM himnos WHERE id_Himno LIKE ".$id.";";
-        $database = new Database();
-        $resultado = $database->getConn()->query($query);
+        $logger->incomplete_data();
         
-        $arr = array();
-        
-        while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
-            $himno = new Himno();
-            $himno->id=$row["id_Himno"];
-            $himno->titulo=$row["titulo"];
-            $himno->letra=$row["letra"];
-            $himno->enUso=$row["enUso"];
-            array_push($arr, $himno);
-        }
-        $paraDevolver = json_encode($arr);
-        return $paraDevolver;
-    }
-    /**
-     * Recibe el titulo de un acto y busca por el en la base de datos 
-     * @param string $titulo
-     * @return Result Object
-     */
-    function buscarPorTitulo($titulo) {
-        $query = "SELECT * FROM himnos WHERE titulo LIKE '".$titulo."';";
-        $database = new Database();
-        $resultado = $database->getConn()->query($query);
-        
-        $arr = array();
-        
-        while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
-            $himno = new Himno();
-            $himno->id=$row["id_Himno"];
-            $himno->titulo=$row["titulo"];
-            $himno->letra=$row["letra"];
-            $himno->enUso=$row["enUso"];
-
-            array_push($arr, $himno);
-        }
-        $paraDevolver = json_encode($arr);
-        return $paraDevolver;
-
-    }
-
-    /**
-     * Recibe la id y el título de un acto y busca por ellos en la base de datos 
-     * @param integer $id string $titulo
-     * @return Result Object
-     */
-    function buscarPorAmbos($id, $titulo) {
-        $query = "SELECT * FROM himnos WHERE id_Himno LIKE ".$id." AND titulo LIKE '".$titulo."';";
-        $database = new Database();
-        $resultado = $database->getConn()->query($query);
-        
-        $arr = array();
-        
-        while ($row = $resultado->fetch(PDO::FETCH_ASSOC)) {
-            $himno = new Himno();
-            $himno->id=$row["id_Himno"];
-            $himno->titulo=$row["titulo"];
-            $himno->letra=$row["letra"];
-            $himno->enUso=$row["enUso"];
-
-            array_push($arr, $himno);
-        }
-        $paraDevolver = json_encode($arr);
-        return $paraDevolver;
-
     }
 
 ?>

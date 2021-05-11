@@ -18,35 +18,27 @@
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
 
-    // Recibe el fecha o el ID de una frase y lo busca en la base de datos 
-    $id = htmlspecialchars($_GET["idMedio"]);
-    $url = htmlspecialchars($_GET["URL"]);
-    
+    if (isset($_GET["idMedio"]) && isset($_GET["URL"])) {
+        // Recibe el fecha o el ID de una frase y lo busca en la base de datos 
+        $id = htmlspecialchars($_GET["idMedio"]);
+        $url = htmlspecialchars($_GET["URL"]);
+        echo BuscarPorAmbos($id, $url);
 
-    // echo "Valores recogidos > id -> ".$id." | fecha -> ".$fecha; 
-
-    if (!empty($id) && !empty($url)) {
-        // echo "Estoy en la rama de las 2 recogidas";
-        // Están ambos valores
-        echo buscarPorAmbos($id, $url);
-    } elseif (!empty($id) && empty($url)) {
-        // echo "Estoy en la rama de solo la id";
-
-        // Está solo el id
-        echo buscarPorId($id);
-    } elseif (empty($id) && !empty($url)) {
-        // echo "Estoy en la rama de solo fecha";
-
-        // Está solo el fecha
-        echo buscarPorFecha($url);
+    } else if (isset($_GET["idMedio"])) {
+        $id = htmlspecialchars($_GET["idMedio"]);
+        echo BuscarPorId($id);
+    } else if (isset($_GET["URL"])) {
+        $url = htmlspecialchars($_GET["URL"]);
+        echo buscarPorURL($url);
     } else {
-        // No hay ninguno
-        echo json_encode(" error : 400, message : Faltan uno o más datos");
+        $logger = new Logger();
+        $logger->incomplete_data();
     }
 
+    
    
     /**
-     * Recibe la id de una frase y busca por ella en la base de datos 
+     * Recibe la id de un medio y busca por ella en la base de datos 
      * @param integer $id
      * @return Result Object
      */
@@ -68,11 +60,11 @@
         return $paraDevolver;
     }
     /**
-     * Recibe el fecha de una frase y busca por el en la base de datos 
+     * Recibela url de un material y busca por ella en la base de datos 
      * @param string $fecha
      * @return Result Object
      */
-    function buscarPorFecha($url) {
+    function buscarPorURL($url) {
         $query = "SELECT * FROM medios WHERE url LIKE '".$url."';";
         $database = new Database();
         $resultado = $database->getConn()->query($query);
@@ -92,7 +84,7 @@
     }
 
     /**
-     * Recibe la id y el título de una frase y busca por ellos en la base de datos 
+     * Recibe la id y la URL de un material y busca por ellos en la base de datos 
      * @param integer $id string $fecha
      * @return Result Object
      */

@@ -3,19 +3,24 @@
     //region imports
     header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=UTF-8");
-    header("Access-Control-Allow-Methods: POST");
+    header('Access-Control-Allow-Origin: *');
+    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Access-Control-Allow-Headers, Authorization, Content-Type, Accept");
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, HEAD');
     header("Access-Control-Max-Age: 3600");
-    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     //endregion
 
     // Conexión con la base de datos 
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
 
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $logger = new Logger();
+    $dao = new Dao();
 
     //region Definicion de los datos que llegan
     $data = json_decode(file_get_contents("php://input"));
@@ -38,36 +43,26 @@
                 //Comprobamos que el registro no existe ya en la base de datos 
                 if ($cf->comprobarExisteAmbientePorTitulo($tituloAmbienteRecibido)) {
                     // El ambiente ya existe
-                    echo json_encode(array("status : 406, message : El ambiente ya existe" ));
+                    echo $logger->already_exists("ambiente");
                 } else {
                     // el ambiente no existe 
-                    $query = "INSERT INTO ambiente (id_Ambiente, titulo, descripcion, enUso) VALUES (null,'".$tituloAmbienteRecibido."', '".$descripcionAmbienteRecibido."', ".$boolEnUso.");";
-                    // echo "La consulta para insertar un ambiente es ".$query;
-                    $stmt = $database->getConn()->prepare($query);
-                        
-                    $stmt->execute();
+                    $dao->insertarAmbiente($tituloAmbienteRecibido, $descripcionAmbienteRecibido, $boolEnUso);
 
-                    echo json_encode(array("status : 200, message : Elemento creado"));
+                    echo $logger->created_element();
                 }
 
             } else {
-                echo json_encode(" status : 400, message : Faltan uno o más datos");
+                echo $logger->incomplete_data();
             }
 
         } else {
-            echo json_encode("status : 401, message : Tiempo de sesión excedido");
+            echo $logger->expired_session();
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
-        echo json_encode("status : 401, message : no tiene permisos para realizar esta operación");
+        echo $logger->not_permission();
     } else {
-        echo json_encode("status : 403, message : token no valido");
+        echo $logger->invalid_token();
     }
-
-    
-
-    
-
-
 
 ?>

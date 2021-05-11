@@ -11,16 +11,16 @@
     // Conexión con la base de datos 
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
-    include_once '../../util/act.php';
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
 
     //Creación de la base de datos 
     $database = new Database();
     // Declaración de commonFunctions
     $cf = new CommonFunctions();
+    $dao = new Dao();
 
-    // No tiene que recibir parámetros es solo la consulta pelada
-    $query = "SELECT * FROM programas;";
-    $resultado = $database->getConn()->query($query);
+    $resultado = $dao->listarActos();
     
     $arr = array();
     

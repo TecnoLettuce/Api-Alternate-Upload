@@ -10,6 +10,10 @@
     // Conexión con la base de datos 
     include_once '../../config/database.php';
     include_once '../../util/commonFunctions.php';
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
+    $logger = new Logger();
+    $dao = new Dao();
 
     //Creación de la base de datos 
     $database = new Database();
@@ -37,29 +41,24 @@
                 //Comprobamos que el registro no existe ya en la base de datos 
                 if ($cf->comprobarExisteOracionPorTitulo($titulo)) {
                     // la oración ya existe
-                    echo json_encode(array("status : 406, message : La oración ya existe" ));
+                    echo $logger->already_exists("oración");
                 } else {
                     // la oración no existe 
-                    $query = "INSERT INTO oraciones (id_Oracion, titulo, texto, enUso) VALUES (null,'".$titulo."','".$texto."', ".$boolEnUso.");";
-                    // echo "La consulta para insertar una oración es ".$query;
-                    $stmt = $database->getConn()->prepare($query);
-                    // echo "La consulta para insertar la oración es ".$query;
-                    
-                    $stmt->execute();
-                    echo json_encode(array("status : 200, message : Elemento creado"));
+                    $dao->insertarOracion($titulo, $texto, $boolEnUso);
+                    echo $logger->created_element();
                 }
             } else {
-                echo json_encode("status : 400, message : Faltan uno o más datos");
+                echo $logger->incomplete_data();
             }
 
         } else {
-            echo json_encode("status : 401, message : Tiempo de sesión excedido");
+            echo $logger->expired_session();
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
-        echo json_encode("status : 401, message : no tiene permisos para realizar esta operación");
+        echo $logger->not_permission();
     } else {
-        echo json_encode("status : 403, message : token no valido");
+        echo $logger->invalid_token();
     }
 
     
