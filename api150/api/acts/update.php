@@ -40,24 +40,29 @@
                 // Tenemos todos los datos ok
                 // Comprobamos que el id existe
                 if ($cf->comprobarExisteActoPorId($idPrograma)) {
-
+                    http_response_code(200);
                     echo $logger->updated_element();
                     
                 } else {
+                    http_response_code(406);
                     echo $logger->not_exists("acto");
                 }
 
             } else {
+                http_response_code(400);
                 echo $logger->incomplete_data();
             }
 
         } else {
+            http_response_code(401);
             echo $logger->expired_session();
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
+        http_response_code(403);
         echo $logger->not_permission();
     } else {
+        http_response_code(403);
         echo $logger->invalid_token();
     }
 

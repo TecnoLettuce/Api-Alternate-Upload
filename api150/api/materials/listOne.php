@@ -32,6 +32,7 @@
         echo buscarPorURL($url);
     } else {
         $logger = new Logger();
+        http_response_code(406);
         $logger->incomplete_data();
     }
 

@@ -37,6 +37,7 @@
         $titulo = htmlspecialchars($_GET["titulo"]);
         echo $dao->listarVisitaPorTitulo($titulo);
     } else {
+        http_response_code(400);
         $logger->incomplete_data();
     }
    

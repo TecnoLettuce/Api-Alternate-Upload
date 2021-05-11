@@ -40,22 +40,28 @@
                 if ($cf->comprobarExisteOracionPorId($idRecibida)) {
                     // Efectivamente existe y se puede eliminar
                     $dao->borrarOracion($idRecibida);
+                    http_response_code(200);
                     echo $logger->deleted_element();
                 } else {
-                    //No existe y por lo tanto no se puede eliminar 
+                    //No existe y por lo tanto no se puede eliminar
+                    http_response_code(406); 
                     echo $logger->not_exists("oración");
                 }
             } else {
+                http_response_code(400);
                 echo $logger->incomplete_data();
             }
 
         } else {
+            http_response_code(401);
             echo $logger->expired_session();
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
+        http_response_code(403);
         echo $logger->not_permission();
     } else {
+        http_response_code(403);
         echo $logger->invalid_token();
     }
     

@@ -40,6 +40,7 @@
     } else {
 
         $log = new Logger();
+        http_response_code(400);
         $log->incomplete_data();
         
     }

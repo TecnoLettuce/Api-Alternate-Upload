@@ -38,7 +38,7 @@
             // La sesión no ha caducado, por lo que seguimos adelante y le otorgamos 2 minutos más
             
 
-            $cf->actualizarExpireDate($token); // NO FUNCIONA
+            $cf->actualizarExpireDate($token); 
 
 
             // comprobamos que no faltan datos vitales
@@ -47,22 +47,28 @@
                 //Comprobamos que el registro no existe ya en la base de datos 
                 if ($cf->comprobarExisteActoPorTitulo($titulo)) {
                     // el programa ya existe
+                    http_response_code(406);
                     echo $logger->already_exists("acto");
                 } else {
                     // el programa no existe 
                     $dao->insertarActo( $titulo, $fecha, $boolEnUso, $categoria);
+                    http_response_code(201);
                     echo $logger->created_element();
                 }
             } else {
+                http_response_code(400);
                 echo $logger->incomplete_data();
             }
 
         } else {
+            http_response_code(401);
             echo $logger->expired_session();
         }
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
+        http_response_code(403);
         echo $logger->not_permission();
     } else {
+        http_response_code(403);
         echo $logger->invalid_token();
     }
   

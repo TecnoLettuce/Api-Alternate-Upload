@@ -62,15 +62,18 @@
                 $stmt = $database->getConn()->prepare($queryExpireSession);
                 // ejecutamos la inserción
                 $stmt->execute();
+                http_response_code(200);
                 echo json_encode(array("status"=>"200")); // TodoOk
             } else {
                 // La sesion está vacía
+                http_response_code(404);
                 echo json_encode(array("status"=>"404"));
             }
 
 
         } else {
-            // no existe sesion asociada al token 
+            // no existe sesion asociada al token
+            http_response_code(404); 
             echo json_encode(array("status" => "404"));
         }
     }

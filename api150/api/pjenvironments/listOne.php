@@ -45,6 +45,7 @@
     } else {
 
         $log = new Logger();
+        http_response_code(406);
         $log->incomplete_data();
         
     }

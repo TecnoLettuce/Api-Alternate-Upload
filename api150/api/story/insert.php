@@ -66,6 +66,7 @@
                 //Comprobamos que el registro no existe ya en la base de datos 
                 if ($cf->comprobarExisteHistoriaPorTitulo($tituloHistoriaRecibido)) {
                     // la Historia ya existe
+                    http_response_code(406);
                     $logger->already_exists("historia");
                 } else {
                     // la historia no existe 
@@ -100,6 +101,7 @@
                             // Comprobamos que la id obtenida es válida
                             if ($idObtenida < 0) {
                                 // No es valida
+                                http_response_code(503);
                                 $logger->fatal_error("Algo ha ido mal extrayendo la id");
                             } else {
                                 // Tenemos la id y los medios insertados
@@ -113,6 +115,7 @@
                                     $stmt->execute();
                                     array_push($relacionesInsertadas, $logger->created_element());
                                 } // Salida del for
+                                http_response_code(200);
                                 $logger->created_element();
                             }
 
@@ -129,19 +132,23 @@
                         $stmt = $database->getConn()->prepare($query);
                         // echo "La consulta para insertar la historia es ".$query;
                         $stmt->execute();
-
+                        http_response_code(200);
                         $logger->created_element();
                     }                        
                 }
             } else {
+                http_response_code(400);
                 $logger->incomplete_data();
             }
         } else {
+            http_response_code(401);
             $logger->expired_session();
         }
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
+        http_response_code(403);
         $logger->not_permission();
     } else {
+        http_response_code(403);
         $logger->invalid_token();
     }
 ?>

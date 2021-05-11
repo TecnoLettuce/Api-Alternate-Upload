@@ -42,24 +42,29 @@
                 //Comprobamos que el registro no existe ya en la base de datos 
                 if ($cf->comprobarExisteHimnoPorTitulo($tituloRecibido)) {
                     // El himno ya existe
+                    http_response_code(406);
                     echo $logger->already_exists("himno");
                 } else {
                     $dao->insertarHimno($tituloRecibido, $letraRecibida, $boolEnUso);
-
+                    http_response_code(201);
                     echo $logger->created_element();
                 }
 
             } else {
+                http_response_code(400);
                 echo $logger->incomplete_data();
             }
 
         } else {
+            http_response_code(401);
             echo $logger->expired_session();
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
+        http_response_code(403);
         echo $logger->not_permission();
     } else {
+        http_response_code(403);
         echo $logger->invalid_token();
     }
 

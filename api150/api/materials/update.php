@@ -39,20 +39,26 @@ $token = htmlspecialchars($_GET["token"]);
                     $query = "UPDATE medios SET url = '".$nuevaURL."' WHERE id_Medio LIKE ".$idMedio.";";
                     $stmt = $database->getConn()->prepare($query);
                     $stmt->execute();
+                    http_response_code(200);
                     echo json_encode(" status : 200, message : Elemento actualizado");
                 } else {
+                    http_response_code(406);
                     echo json_encode(" status : 406, message : El registro no existe");
                 }
             } else {
+                http_response_code(400);
                 echo json_encode(" status : 400, message : Faltan uno o más datos");
             }
         } else {
+            http_response_code(401);
             echo json_encode("status : 401, message : Tiempo de sesión excedido");
         }
 
     } elseif ($cf->comprobarTokenAdmin($token) == 0) {
+        http_response_code(403);
         echo json_encode("status : 401, message : no tiene permisos para realizar esta operación");
     } else {
+        http_response_code(403);
         echo json_encode("status : 403, message : token no valido");
     }
 

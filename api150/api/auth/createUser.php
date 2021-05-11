@@ -23,6 +23,10 @@
     include_once '../../objects/user.php';
     include_once '../../objects/session.php';
     include_once '../../util/commonFunctions.php';
+    include_once '../../objects/DAO.php';
+    include_once '../../util/logger.php';
+    $logger = new Logger();
+    $dao = new Dao();
 
     $database = new Database();
     $common = new CommonFunctions();
@@ -52,17 +56,21 @@
         //$tokenValido = comprobarToken($tokenRecibido);
 
         if ($tokenValido == -1) {
-            echo json_encode("El token de usuario que está utilizando no es válido");
+            http_response_code(403);
+            echo $logger->invalid_token();
         } else if ($tokenValido == 0) {
-            echo json_encode("Está intentando crear un usuario sin permisos de administrador");
+            http_response_code(403);
+            echo $logger->not_permission();
         } else {
             $passwordRecibida = sha1($passwordRecibida, $raw_output = false);
             $idUser = crearUsuario($userNameRecibido, $passwordRecibida, $mailRecibido, $rolRecibido);
-            echo json_encode(array("error : 0")); // todo bien 
+            http_response_code(201);
+            echo $logger->created_element(); 
         }
         
     } else {
-        echo json_encode(array("error : 1")); // Faltan datos
+        http_response_code(400);
+        echo $logger->incomplete_data();
     }
 
 
